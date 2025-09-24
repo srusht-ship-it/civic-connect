@@ -1,0 +1,117 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.App {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #4ade80 0%, #22d3ee 50%, #3b82f6 100%);
+  padding: 20px;
+}
+
+.main-container {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.content-card {
+  background: white;
+  border-radius: 24px;
+  padding: 60px 40px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 500px;
+  position: relative;
+}
+
+.icon-container {
+  margin-bottom: 40px;
+  display: flex;
+  justify-content: center;
+}
+
+.civic-icon {
+  width: 80px;
+  height: 80px;
+  background: #22c55e;
+  border-radius: 50%;
+  padding: 20px;
+  box-shadow: 0 8px 25px rgba(34, 197, 94, 0.3);
+}
+
+.main-title {
+  font-size: 3rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 30px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.description {
+  font-size: 1.1rem;
+  color: #6b7280;
+  line-height: 1.6;
+  margin-bottom: 50px;
+  font-weight: 400;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .content-card {
+    padding: 40px 30px;
+    border-radius: 20px;
+    margin: 10px;
+  }
+  
+  .main-title {
+    font-size: 2.5rem;
+  }
+  
+  .civic-icon {
+    width: 70px;
+    height: 70px;
+    padding: 18px;
+  }
+  
+  .description {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .content-card {
+    padding: 30px 20px;
+  }
+  
+  .main-title {
+    font-size: 2rem;
+  }
+  
+  .civic-icon {
+    width: 60px;
+    height: 60px;
+    padding: 15px;
+  }
+  
+  .description {
+    font-size: 0.95rem;
+    margin-bottom: 40px;
+  }
+}
