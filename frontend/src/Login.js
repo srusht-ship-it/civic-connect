@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import { navigateToDashboard } from './utils/navigationUtils';
 import OTPLogin from './components/OTPLogin';
 import MobileOTPLogin from './components/MobileOTPLogin';
 import './Login.css';
@@ -54,8 +55,8 @@ const Login = () => {
       const result = await login({ email, password });
       
       if (result.success) {
-        // Navigate to dashboard on successful login
-        navigate('/dashboard');
+        // Navigate based on user role using utility function
+        navigateToDashboard(navigate, result.user);
       } else {
         // Handle login errors
         if (result.errors && result.errors.length > 0) {

@@ -509,3 +509,11 @@
     justify-content: center;
   }
 }
+
+/* Optional field label styling */
+.optional-label {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #6b7280;
+  margin-left: 0.5rem;
+}

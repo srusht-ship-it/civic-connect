@@ -1,0 +1,279 @@
+/* Admin Map Styles */
+.admin-map-container {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.map-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.map-header h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.map-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.map-control-btn {
+  padding: 0.5rem 1rem;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  color: #6b7280;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.map-control-btn.active,
+.map-control-btn:hover {
+  background: #059669;
+  border-color: #059669;
+  color: white;
+}
+
+.map-wrapper {
+  padding: 0;
+  height: 400px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 0 0 12px 12px;
+}
+
+.map-view {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: linear-gradient(135deg, #e6f3ff 0%, #f0f8e6 100%);
+  overflow: hidden;
+}
+
+.map-background {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* Streets */
+.street {
+  position: absolute;
+  background: #d1d5db;
+  z-index: 1;
+}
+
+.street.horizontal {
+  width: 100%;
+  height: 4px;
+}
+
+.street.vertical {
+  width: 4px;
+  height: 100%;
+}
+
+/* Parks and Areas */
+.park {
+  position: absolute;
+  background: rgba(34, 197, 94, 0.2);
+  border: 2px solid #22c55e;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.area-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #059669;
+  text-align: center;
+  transform: rotate(-15deg);
+}
+
+/* Neighborhoods */
+.neighborhood {
+  position: absolute;
+  z-index: 2;
+}
+
+.neighborhood-label {
+  font-size: 0.6rem;
+  font-weight: 500;
+  color: #6b7280;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* Map Pins */
+.map-pin {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  z-index: 10;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.map-pin:hover {
+  transform: translate(-50%, -100%) scale(1.2);
+}
+
+.pin-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.pin-dot::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 6px solid inherit;
+}
+
+/* Pin Priority Colors */
+.map-pin.high .pin-dot {
+  background: #ef4444;
+  border-color: white;
+}
+
+.map-pin.high .pin-dot::after {
+  border-top-color: #ef4444;
+}
+
+.map-pin.medium .pin-dot {
+  background: #f59e0b;
+  border-color: white;
+}
+
+.map-pin.medium .pin-dot::after {
+  border-top-color: #f59e0b;
+}
+
+.map-pin.low .pin-dot {
+  background: #10b981;
+  border-color: white;
+}
+
+.map-pin.low .pin-dot::after {
+  border-top-color: #10b981;
+}
+
+/* Location Markers */
+.location-marker {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 5;
+}
+
+.location-icon {
+  font-size: 1.2rem;
+  margin-bottom: 0.25rem;
+}
+
+.location-label {
+  font-size: 0.6rem;
+  font-weight: 500;
+  color: #374151;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  white-space: nowrap;
+  border: 1px solid #e5e7eb;
+}
+
+/* Map Info Overlay */
+.map-info {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  right: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  pointer-events: none;
+}
+
+.map-legend {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: auto;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #374151;
+}
+
+.legend-pin {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid white;
+}
+
+.legend-pin.high {
+  background: #ef4444;
+}
+
+.legend-pin.medium {
+  background: #f59e0b;
+}
+
+.legend-pin.low {
+  background: #10b981;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .map-wrapper {
+    height: 300px;
+  }
+  
+  .map-controls {
+    flex-wrap: wrap;
+  }
+  
+  .map-control-btn {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.8rem;
+  }
+  
+  .area-label, .neighborhood-label, .location-label {
+    font-size: 0.5rem;
+  }
+}

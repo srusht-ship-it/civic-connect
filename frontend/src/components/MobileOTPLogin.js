@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { navigateToDashboard } from '../utils/navigationUtils';
 import { sendMobileLoginOTP, verifyMobileLoginOTP } from '../services/api';
 import './OTPLogin.css';
 
@@ -13,7 +15,8 @@ const MobileOTPLogin = ({ onBackToLogin }) => {
   const [canResend, setCanResend] = useState(false);
   const [countdown, setCountdown] = useState(0);
 
-  const { login } = useAuth();
+  const { loginWithToken } = useAuth();
+  const navigate = useNavigate();
 
   // Format mobile number as user types
   const formatMobileNumber = (value) => {
@@ -107,8 +110,14 @@ const MobileOTPLogin = ({ onBackToLogin }) => {
       });
       
       if (response.data.success) {
-        setSuccess('Login successful!');
-        login(response.data.data.token, response.data.data.user);
+        setSuccess('Login successful! Redirecting to dashboard...');
+        const userData = response.data.data.user;
+        loginWithToken(response.data.data.token, userData);
+        
+        // Add a small delay to show success message, then redirect based on role
+        setTimeout(() => {
+          navigateToDashboard(navigate, userData);
+        }, 1000);
       }
     } catch (error) {
       setError(error.response?.data?.message || 'Invalid OTP');

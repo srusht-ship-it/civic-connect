@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import { navigateToDashboard } from './utils/navigationUtils';
 import './SignUp.css';
 
 const SignUp = () => {
@@ -101,8 +102,8 @@ const SignUp = () => {
       const result = await register(formData);
       
       if (result.success) {
-        // Navigate to dashboard on successful registration
-        navigate('/dashboard');
+        // Navigate to appropriate dashboard on successful registration
+        navigateToDashboard(navigate, result.user);
       } else {
         // Handle registration errors
         if (result.errors && result.errors.length > 0) {

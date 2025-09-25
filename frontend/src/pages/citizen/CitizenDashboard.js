@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useLanguage } from './context/LanguageContext';
-import IssueCard from './components/IssueCard';
-import StatusSidebar from './components/StatusSidebar';
-import MapComponent from './components/MapComponent';
-import LanguageSelector from './components/LanguageSelector';
-import civicIssuesService from './services/civicIssuesService';
-import './NewDashboard.css';
+import { useLanguage } from '../../context/LanguageContext';
+import { useAuth } from '../../context/AuthContext';
+import IssueCard from '../../components/IssueCard';
+import StatusSidebar from '../../components/StatusSidebar';
+import MapComponent from '../../components/MapComponent';
+import LanguageSelector from '../../components/LanguageSelector';
+import civicIssuesService from '../../services/civicIssuesService';
+import './CitizenDashboard.css';
 
 const NewDashboard = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { user, isAuthenticated, logout } = useAuth();
   const [issues, setIssues] = useState([]);
   const [userReports, setUserReports] = useState({
     pending: 0,
@@ -20,9 +22,18 @@ const NewDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Redirect to login if not authenticated
   useEffect(() => {
-    loadDashboardData();
-  }, []);
+    if (!isAuthenticated) {
+      navigate('/login');
+    }
+  }, [isAuthenticated, navigate]);
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      loadDashboardData();
+    }
+  }, [isAuthenticated, user]);
 
   const loadDashboardData = async () => {
     setLoading(true);
@@ -40,7 +51,12 @@ const NewDashboard = () => {
         setIssues(issuesResponse.data || []);
       }
 
-      setUserReports(userReportsResponse);
+      // Set user-specific reports data
+      if (userReportsResponse.success) {
+        setUserReports(userReportsResponse.data);
+      } else {
+        setUserReports(userReportsResponse);
+      }
     } catch (err) {
       console.error('Error loading dashboard data:', err);
       setError('Failed to load dashboard data');
@@ -48,24 +64,48 @@ const NewDashboard = () => {
       // Load sample data as fallback
       const fallbackData = civicIssuesService.getSampleIssues();
       setIssues(fallbackData.data);
+      
+      // Generate user-specific fallback data based on user ID
+      const userId = user?.id || user?._id || 'demo';
+      const userHash = userId.toString().split('').reduce((a, b) => {
+        a = ((a << 5) - a) + b.charCodeAt(0);
+        return a & a;
+      }, 0);
+      
       setUserReports({
-        pending: 4,
-        inProgress: 3,
-        resolved: 6
+        pending: Math.abs(userHash % 5) + 1,
+        inProgress: Math.abs(userHash % 3) + 1,
+        resolved: Math.abs(userHash % 8) + 2
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Even if logout fails, clear local state and redirect
+      navigate('/');
+    }
   };
 
   const handleReportIssue = () => {
     // Navigate to report issue form
     navigate('/report-issue');
+  };
+
+  // Helper function to get user initials
+  const getUserInitials = (fullName) => {
+    if (!fullName) return 'U';
+    return fullName
+      .split(' ')
+      .map(name => name.charAt(0).toUpperCase())
+      .slice(0, 2)
+      .join('');
   };
 
   const handleIssueUpdate = (updatedIssue) => {
@@ -142,10 +182,19 @@ const NewDashboard = () => {
             Map View
           </button>
           <div className="user-menu">
-            <button className="user-avatar">
-              <span>JD</span>
+            <div className="user-info">
+              <button className="user-avatar" title={user?.fullName || 'User'}>
+                <span>{getUserInitials(user?.fullName)}</span>
+              </button>
+              <div className="user-details">
+                <span className="user-name">{user?.fullName || 'User'}</span>
+                <span className="user-role">{t('citizen')}</span>
+              </div>
+            </div>
+            <button className="logout-btn" onClick={handleLogout}>
+              <span className="icon">🚪</span>
+              Logout
             </button>
-            <button className="logout-btn" onClick={handleLogout}>Logout</button>
           </div>
         </div>
       </header>
@@ -188,7 +237,7 @@ const NewDashboard = () => {
           {/* Welcome Section */}
           <div className="welcome-section">
             <div className="welcome-content">
-              <h1>Welcome back, John</h1>
+              <h1>Welcome back, {user?.fullName?.split(' ')[0] || 'User'}</h1>
               <p>See community updates and report issues to improve your neighborhood. Together, we're building a better community.</p>
             </div>
             <div className="welcome-stats">
@@ -197,12 +246,12 @@ const NewDashboard = () => {
                 <div className="stat-label">Issues Resolved</div>
               </div>
               <div className="stat-item">
-                <div className="stat-number">52</div>
-                <div className="stat-label">Active Reports</div>
+                <div className="stat-number">{userReports.pending + userReports.inProgress}</div>
+                <div className="stat-label">Your Active Reports</div>
               </div>
               <div className="stat-item">
-                <div className="stat-number">1.2K</div>
-                <div className="stat-label">Community Members</div>
+                <div className="stat-number">{userReports.resolved}</div>
+                <div className="stat-label">Your Resolved Reports</div>
               </div>
             </div>
           </div>

@@ -1,0 +1,284 @@
+/* Admin Issues List Styles */
+.admin-issues-list {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.issues-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.issues-header h3 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.issues-subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.issues-container {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.issue-item {
+  padding: 1.5rem;
+  border-bottom: 1px solid #f3f4f6;
+  transition: all 0.2s;
+}
+
+.issue-item:hover {
+  background: #f8fafc;
+}
+
+.issue-item:last-child {
+  border-bottom: none;
+}
+
+.issue-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.issue-id {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #059669;
+  background: #f0fdf4;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  min-width: 60px;
+  text-align: center;
+}
+
+.issue-content {
+  flex: 1;
+}
+
+.issue-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  line-height: 1.4;
+}
+
+.issue-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.issue-location,
+.issue-time {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.issue-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+/* Status Badges */
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.status-badge.open {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.status-badge.in-review {
+  background: #fefbeb;
+  color: #d97706;
+}
+
+.status-badge.assigned {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.status-badge.in-progress {
+  background: #f0f9ff;
+  color: #0284c7;
+}
+
+.status-badge.resolved {
+  background: #f0fdf4;
+  color: #059669;
+}
+
+/* Priority Badges */
+.priority-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.priority-badge.high {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.priority-badge.medium {
+  background: #fefbeb;
+  color: #d97706;
+  border: 1px solid #fed7aa;
+}
+
+.priority-badge.low {
+  background: #f0fdf4;
+  color: #059669;
+  border: 1px solid #bbf7d0;
+}
+
+/* Issue Actions */
+.issue-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.assign-btn,
+.status-btn,
+.view-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.assign-btn {
+  background: #059669;
+  color: white;
+}
+
+.assign-btn:hover {
+  background: #047857;
+  transform: translateY(-1px);
+}
+
+.status-btn {
+  background: #3b82f6;
+  color: white;
+}
+
+.status-btn:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.view-btn {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.view-btn:hover {
+  background: #e5e7eb;
+  color: #1f2937;
+}
+
+/* No Issues State */
+.no-issues {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: #6b7280;
+}
+
+.no-issues-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.no-issues h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.no-issues p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .issue-main {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .issue-badges {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  
+  .issue-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  
+  .issue-meta {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .admin-issues-list {
+    margin: 0 -1rem;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+}
+
+/* New styles for additional issue info */
+.issue-description {
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.5;
+  margin: 0.5rem 0 0 0;
+}
+
+.issue-reporter {
+  color: #059669;
+  font-weight: 500;
+}
+
+.category-badge {
+  background: linear-gradient(135deg, #8b5cf6, #a855f7);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}

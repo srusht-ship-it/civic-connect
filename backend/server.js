@@ -7,6 +7,7 @@ const dotenv = require('dotenv');
 const authRoutes = require('./src/routes/auth');
 const otpRoutes = require('./src/routes/otp');
 const mobileOTPRoutes = require('./src/routes/mobileOTP');
+const issueRoutes = require('./src/routes/issues');
 
 // Load environment variables
 dotenv.config();
@@ -27,6 +28,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/otp', otpRoutes);
 app.use('/api/mobile-otp', mobileOTPRoutes);
+app.use('/api/issues', issueRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {

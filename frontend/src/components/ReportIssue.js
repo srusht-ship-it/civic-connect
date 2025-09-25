@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
+import { issueAPI } from '../utils/issueAPI';
 import VoiceRecorder from './VoiceRecorder';
 import LanguageSelector from './LanguageSelector';
 import './ReportIssue.css';
@@ -17,6 +18,7 @@ const ReportIssue = () => {
   });
   const [previewImage, setPreviewImage] = useState(null);
   const [isLocationLoading, setIsLocationLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
 
@@ -125,40 +127,54 @@ const ReportIssue = () => {
     detectLocation();
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     // Validate required fields
-    if (!formData.photo) {
-      alert(t('photoHelp'));
-      return;
-    }
-    
     if (!formData.description.trim() && !formData.voiceTranscription.trim()) {
       alert('Please provide a description of the issue or record a voice message.');
       return;
     }
-    
-    if (!formData.location) {
-      alert('Location is required to submit the report.');
-      return;
-    }
 
-    // Submit the report (integrate with backend API)
-    console.log('Submitting report:', formData);
-    alert(t('success') + '! Report submitted successfully!');
-    
-    // Reset form
-    setFormData({
-      photo: null,
-      location: '',
-      coordinates: null,
-      category: 'Pothole',
-      description: '',
-      voiceRecording: null,
-      voiceTranscription: ''
-    });
-    setPreviewImage(null);
+    setIsSubmitting(true);
+
+    try {
+      // Prepare the issue data
+      const issueData = {
+        title: formData.description.substring(0, 100) || `${formData.category} Issue`, // Use first 100 chars as title
+        description: formData.description.trim() || formData.voiceTranscription.trim(),
+        category: formData.category,
+        location: formData.location || 'Location not provided',
+        coordinates: formData.coordinates || { lat: 0, lng: 0 },
+        voiceTranscription: formData.voiceTranscription.trim() || null
+      };
+
+      // Submit the issue to the backend
+      const response = await issueAPI.createIssue(issueData);
+      
+      if (response.success) {
+        alert(t('success') + '! Report submitted successfully!');
+        
+        // Reset form
+        setFormData({
+          photo: null,
+          location: '',
+          coordinates: null,
+          category: 'Pothole',
+          description: '',
+          voiceRecording: null,
+          voiceTranscription: ''
+        });
+        setPreviewImage(null);
+      } else {
+        throw new Error(response.message || 'Failed to submit report');
+      }
+    } catch (error) {
+      console.error('Error submitting report:', error);
+      alert(`Failed to submit report: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -249,7 +265,7 @@ const ReportIssue = () => {
               </div>
 
               <div className="form-section location-section">
-                <h3>{t('location')}</h3>
+                <h3>{t('location')} <span className="optional-label">(Optional)</span></h3>
                 
                 <div className="location-map">
                   <div className="map-placeholder">
@@ -326,8 +342,8 @@ const ReportIssue = () => {
             </div>
 
             <div className="form-actions">
-              <button type="submit" className="submit-btn">
-                {t('submitReport')}
+              <button type="submit" className="submit-btn" disabled={isSubmitting}>
+                {isSubmitting ? 'Submitting...' : t('submitReport')}
               </button>
             </div>
           </form>

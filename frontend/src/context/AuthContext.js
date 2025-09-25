@@ -180,6 +180,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Direct login function for OTP-based authentication
+  const loginWithToken = (token, user) => {
+    // Store token and user data in localStorage
+    localStorage.setItem('auth_token', token);
+    localStorage.setItem('user_data', JSON.stringify(user));
+    
+    dispatch({
+      type: AUTH_ACTIONS.LOGIN_SUCCESS,
+      payload: { token, user }
+    });
+  };
+
   // Logout function
   const logout = async () => {
     try {
@@ -204,6 +216,7 @@ export const AuthProvider = ({ children }) => {
     loading: state.loading,
     error: state.error,
     login,
+    loginWithToken,
     register,
     logout,
     clearError
