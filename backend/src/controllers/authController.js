@@ -21,7 +21,7 @@ const generateToken = (userId, email, role, mobileNumber) => {
 // User Registration Controller
 const registerUser = async (req, res) => {
   try {
-    const { fullName, email, password, confirmPassword, phoneNumber, mobileNumber } = req.body;
+    const { fullName, email, password, confirmPassword, phoneNumber, mobileNumber, role } = req.body;
 
     // Use mobileNumber if provided, otherwise use phoneNumber for backward compatibility
     const mobile = mobileNumber || phoneNumber;
@@ -33,6 +33,10 @@ const registerUser = async (req, res) => {
         message: 'Mobile number is required'
       });
     }
+
+    // Validate role selection
+    const validRoles = ['citizen', 'admin', 'official'];
+    const userRole = role && validRoles.includes(role) ? role : 'citizen';
 
     // Validate and format mobile number
     const mobileValidation = mobileOTPService.validateAndFormatMobileNumber(mobile);
@@ -82,7 +86,8 @@ const registerUser = async (req, res) => {
       fullName: fullName.trim(),
       email: email.toLowerCase().trim(),
       password,
-      mobileNumber: formattedMobile
+      mobileNumber: formattedMobile,
+      role: userRole
     });
 
     await newUser.save();

@@ -12,7 +12,8 @@ const SignUp = () => {
     email: '',
     phoneNumber: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    role: 'citizen'
   });
   const [errors, setErrors] = useState({});
   const [agreeToTerms, setAgreeToTerms] = useState(false);
@@ -21,6 +22,7 @@ const SignUp = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -239,6 +241,49 @@ const SignUp = () => {
               disabled={loading}
             />
             {errors.phoneNumber && <div className="error-message">{errors.phoneNumber}</div>}
+          </div>
+
+          <div className="form-group">
+            <label className="role-selection-label">Account Type</label>
+            <div className="role-selection-container">
+              <div className="role-option">
+                <input
+                  type="radio"
+                  id="citizen"
+                  name="role"
+                  value="citizen"
+                  checked={formData.role === 'citizen'}
+                  onChange={handleInputChange}
+                  disabled={loading}
+                />
+                <label htmlFor="citizen" className="role-option-label">
+                  <div className="role-icon">👤</div>
+                  <div className="role-details">
+                    <span className="role-title">Citizen</span>
+                    <span className="role-description">Report issues and access services</span>
+                  </div>
+                </label>
+              </div>
+              <div className="role-option">
+                <input
+                  type="radio"
+                  id="admin"
+                  name="role"
+                  value="admin"
+                  checked={formData.role === 'admin'}
+                  onChange={handleInputChange}
+                  disabled={loading}
+                />
+                <label htmlFor="admin" className="role-option-label">
+                  <div className="role-icon">🏛️</div>
+                  <div className="role-details">
+                    <span className="role-title">Administrator</span>
+                    <span className="role-description">Manage issues and oversee operations</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+            {errors.role && <div className="error-message">{errors.role}</div>}
           </div>
 
           <div className="form-group">

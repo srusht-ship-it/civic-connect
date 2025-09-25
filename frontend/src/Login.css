@@ -97,6 +97,116 @@
   margin: 0;
 }
 
+/* Login Role Selector Styles */
+.login-role-selector {
+  margin-bottom: 32px;
+}
+
+.role-tabs {
+  display: flex;
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 4px;
+  gap: 4px;
+}
+
+.role-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.role-tab.active {
+  background: white;
+  color: #1f2937;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.role-tab:hover:not(.active) {
+  color: #374151;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.role-tab-icon {
+  font-size: 1.1rem;
+}
+
+.role-tab-text {
+  font-weight: 600;
+}
+
+/* Role-based styling variations */
+.login-right-panel.admin-mode .secure-login-badge {
+  background: #8b5cf6;
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+}
+
+.login-right-panel.admin-mode .role-tab.active {
+  color: #8b5cf6;
+  background: #f3f4f6;
+  box-shadow: 0 1px 3px rgba(139, 92, 246, 0.2);
+}
+
+.login-right-panel.citizen-mode .secure-login-badge {
+  background: #22c55e;
+  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+}
+
+.login-right-panel.admin-mode .login-button {
+  background: #8b5cf6;
+  border-color: #8b5cf6;
+}
+
+.login-right-panel.admin-mode .login-button:hover {
+  background: #7c3aed;
+  border-color: #7c3aed;
+}
+
+.login-right-panel.citizen-mode .login-button {
+  background: #22c55e;
+  border-color: #22c55e;
+}
+
+.login-right-panel.citizen-mode .login-button:hover {
+  background: #16a34a;
+  border-color: #16a34a;
+}
+
+/* Enhanced error message styling for role mismatch */
+.general-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgba(220, 38, 38, 0.1);
+}
+
+.role-mismatch-error {
+  background: #fef3c7;
+  border: 1px solid #fed7aa;
+  color: #d97706;
+}
+
+/* Visual feedback for role selection errors */
+.login-role-selector.error .role-tabs {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
 .secure-login-badge {
   background: #22c55e;
   color: white;

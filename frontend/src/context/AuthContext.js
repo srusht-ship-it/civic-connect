@@ -132,7 +132,12 @@ export const AuthProvider = ({ children }) => {
           type: AUTH_ACTIONS.LOGIN_SUCCESS,
           payload: result.data
         });
-        return { success: true, message: result.message };
+        return { 
+          success: true, 
+          message: result.message,
+          user: result.data.user,
+          token: result.data.token
+        };
       } else {
         dispatch({
           type: AUTH_ACTIONS.LOGIN_FAILURE,
@@ -162,7 +167,12 @@ export const AuthProvider = ({ children }) => {
           type: AUTH_ACTIONS.REGISTER_SUCCESS,
           payload: result.data
         });
-        return { success: true, message: result.message };
+        return { 
+          success: true, 
+          message: result.message, 
+          user: result.data.user,
+          token: result.data.token 
+        };
       } else {
         dispatch({
           type: AUTH_ACTIONS.REGISTER_FAILURE,

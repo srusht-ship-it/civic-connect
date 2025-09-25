@@ -64,6 +64,11 @@ const issueSchema = new mongoose.Schema({
     ref: 'User',
     default: null
   },
+  department: {
+    type: String,
+    enum: ['public-works', 'transportation', 'sanitation', 'water-supply', 'electricity', 'housing', 'health', 'education', 'parks', 'security'],
+    default: null
+  },
   reportedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

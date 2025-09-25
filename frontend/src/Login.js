@@ -11,6 +11,7 @@ const Login = () => {
   const { login, loading, error, clearError } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [selectedRole, setSelectedRole] = useState('citizen'); // New state for role
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [showOTPLogin, setShowOTPLogin] = useState(false);
@@ -55,7 +56,32 @@ const Login = () => {
       const result = await login({ email, password });
       
       if (result.success) {
-        // Navigate based on user role using utility function
+        // Validate that user's actual role matches selected role
+        const userRole = result.user?.role;
+        
+        // Safety check - ensure user data exists
+        if (!result.user) {
+          setErrors({ 
+            general: 'Login failed: User data not received. Please try again.' 
+          });
+          return;
+        }
+        
+        if (selectedRole === 'admin' && userRole !== 'admin' && userRole !== 'official') {
+          setErrors({ 
+            general: `Access denied. This account is registered as a ${userRole}. Please switch to the "Citizen" login option or contact an administrator for role changes.` 
+          });
+          return;
+        }
+        
+        if (selectedRole === 'citizen' && (userRole === 'admin' || userRole === 'official')) {
+          setErrors({ 
+            general: `This account has ${userRole} privileges. Please use the "Administrator" login option instead.` 
+          });
+          return;
+        }
+        
+        // Navigate based on user's actual role (not selected role)
         navigateToDashboard(navigate, result.user);
       } else {
         // Handle login errors
@@ -136,17 +162,38 @@ const Login = () => {
         </div>
 
         {/* Right Panel - Login Form */}
-        <div className="login-right-panel">
+        <div className={`login-right-panel ${selectedRole === 'admin' ? 'admin-mode' : 'citizen-mode'}`}>
           <div className="login-header">
             <h1 className="login-title">Welcome back</h1>
             <p className="login-subtitle">Sign in to your account</p>
+          </div>
+
+          <div className="login-role-selector">
+            <div className="role-tabs">
+              <button 
+                type="button"
+                className={`role-tab ${selectedRole === 'citizen' ? 'active' : ''}`}
+                onClick={() => setSelectedRole('citizen')}
+              >
+                <span className="role-tab-icon">👤</span>
+                <span className="role-tab-text">Citizen</span>
+              </button>
+              <button 
+                type="button"
+                className={`role-tab ${selectedRole === 'admin' ? 'active' : ''}`}
+                onClick={() => setSelectedRole('admin')}
+              >
+                <span className="role-tab-icon">🏛️</span>
+                <span className="role-tab-text">Administrator</span>
+              </button>
+            </div>
           </div>
 
           <div className="secure-login-badge">
             <svg className="shield-icon" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M10 1L3 5v6c0 5.55 3.84 10.74 9 11 5.16-.26 9-5.45 9-11V5l-7-4zM8 14l-3-3 1.5-1.5L8 11l5.5-5.5L15 7l-7 7z" clipRule="evenodd"/>
             </svg>
-            Secure login
+            {selectedRole === 'admin' ? 'Secure Admin Login' : 'Secure Citizen Login'}
           </div>
 
           <form className="login-form" onSubmit={handleLogin}>
@@ -210,7 +257,7 @@ const Login = () => {
                 Signing in...
               </span>
             ) : (
-              'Login'
+              selectedRole === 'admin' ? 'Login as Administrator' : 'Login as Citizen'
             )}
           </button>
         </form>

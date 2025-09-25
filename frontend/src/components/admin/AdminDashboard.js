@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { issueAPI } from '../../utils/issueAPI';
 import AdminHeader from './AdminHeader';
 import AdminFilters from './AdminFilters';
@@ -6,9 +8,13 @@ import AdminMap from './AdminMap';
 import AdminIssuesList from './AdminIssuesList';
 import AdminAnalytics from './AdminAnalytics';
 import AdminTeam from './AdminTeam';
+import AssignmentModal from './AssignmentModal';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  
   const [activeView, setActiveView] = useState('overview');
   const [filters, setFilters] = useState({
     category: '',
@@ -20,6 +26,49 @@ const AdminDashboard = () => {
   const [statistics, setStatistics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [assignmentModal, setAssignmentModal] = useState({
+    isOpen: false,
+    issue: null
+  });
+
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
+  // Handle opening assignment modal
+  const handleOpenAssignmentModal = (issue) => {
+    setAssignmentModal({
+      isOpen: true,
+      issue: issue
+    });
+  };
+
+  // Handle closing assignment modal
+  const handleCloseAssignmentModal = () => {
+    setAssignmentModal({
+      isOpen: false,
+      issue: null
+    });
+  };
+
+  // Handle assigning issue to department
+  const handleAssignIssue = async (issueId, department) => {
+    try {
+      await issueAPI.assignIssueToDepartment(issueId, department);
+      // Refresh issues after assignment
+      await fetchIssues();
+      console.log(`Issue ${issueId} assigned to ${department}`);
+    } catch (error) {
+      console.error('Failed to assign issue:', error);
+      throw error; // Let the modal handle the error display
+    }
+  };
 
   // Fetch issues data from API
   useEffect(() => {
@@ -51,17 +100,11 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleAssign = async (issueId, assignedTo) => {
-    try {
-      await issueAPI.updateIssueStatus(issueId, { 
-        assignedTo: assignedTo,
-        status: 'in-progress' 
-      });
-      // Refresh issues after assignment
-      fetchIssues();
-    } catch (error) {
-      console.error('Error assigning issue:', error);
-      alert('Failed to assign issue');
+  const handleAssign = (issueId, assignedTo = null) => {
+    // Find the issue by ID
+    const issue = issues.find(issue => (issue._id || issue.id) === issueId);
+    if (issue) {
+      handleOpenAssignmentModal(issue);
     }
   };
 
@@ -159,6 +202,8 @@ const AdminDashboard = () => {
   return (
     <div className="admin-dashboard">
       <AdminHeader 
+        user={user}
+        onLogout={handleLogout}
         activeView={activeView} 
         setActiveView={setActiveView} 
       />
@@ -175,6 +220,13 @@ const AdminDashboard = () => {
           {renderActiveView()}
         </div>
       </div>
+      
+      <AssignmentModal
+        isOpen={assignmentModal.isOpen}
+        onClose={handleCloseAssignmentModal}
+        issue={assignmentModal.issue}
+        onAssign={handleAssignIssue}
+      />
     </div>
   );
 };

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 import { issueAPI } from '../utils/issueAPI';
 import VoiceRecorder from './VoiceRecorder';
 import LanguageSelector from './LanguageSelector';
@@ -7,6 +8,7 @@ import './ReportIssue.css';
 
 const ReportIssue = () => {
   const { t } = useLanguage();
+  const { user, token, isAuthenticated } = useAuth();
   const [formData, setFormData] = useState({
     photo: null,
     location: '',
@@ -130,6 +132,16 @@ const ReportIssue = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Check authentication
+    console.log('User authenticated:', isAuthenticated);
+    console.log('User:', user);
+    console.log('Token available:', !!token);
+    
+    if (!isAuthenticated) {
+      alert('You must be logged in to submit a report. Please log in first.');
+      return;
+    }
+    
     // Validate required fields
     if (!formData.description.trim() && !formData.voiceTranscription.trim()) {
       alert('Please provide a description of the issue or record a voice message.');
@@ -171,7 +183,19 @@ const ReportIssue = () => {
       }
     } catch (error) {
       console.error('Error submitting report:', error);
-      alert(`Failed to submit report: ${error.message}`);
+      
+      // Provide specific error messages
+      if (error.message.includes('Cannot connect to server')) {
+        alert('Cannot connect to server. Please make sure the backend server is running on http://localhost:5000');
+      } else if (error.message.includes('Invalid token') || error.message.includes('Unauthorized')) {
+        alert('Your session has expired. Please log in again to submit the report.');
+      } else if (error.message.includes('Authentication required')) {
+        alert('You must be logged in to submit a report. Please log in first.');
+      } else if (error.message.includes('fetch')) {
+        alert('Network error: Unable to connect to the server. Please check your internet connection and try again.');
+      } else {
+        alert(`Failed to submit report: ${error.message}`);
+      }
     } finally {
       setIsSubmitting(false);
     }

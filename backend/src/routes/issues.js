@@ -7,7 +7,8 @@ const {
   getIssueById,
   updateIssueStatus,
   deleteIssue,
-  getIssueStatistics
+  getIssueStatistics,
+  assignIssueToDepartment
 } = require('../controllers/issueController');
 const { authenticateToken } = require('../middleware/auth');
 const adminAuth = require('../middleware/adminAuth');
@@ -22,6 +23,7 @@ router.get('/my-issues', authenticateToken, getUserIssues);          // Get user
 router.get('/:id', authenticateToken, getIssueById);                 // Get single issue by ID
 
 // Admin only routes for specific issues
+router.put('/:id/assign', authenticateToken, adminAuth, assignIssueToDepartment); // Assign issue to department
 router.put('/:id/status', authenticateToken, adminAuth, updateIssueStatus); // Update issue status
 router.delete('/:id', authenticateToken, adminAuth, deleteIssue);    // Delete issue
 

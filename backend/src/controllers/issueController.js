@@ -41,7 +41,7 @@ const createIssue = async (req, res) => {
         lng: parseFloat(coordinates.lng)
       } : { lat: 0, lng: 0 },
       voiceTranscription: voiceTranscription?.trim() || null,
-      reportedBy: req.user.id // Set from authenticated user
+      reportedBy: req.user.userId // Use userId from JWT payload
     });
 
     const savedIssue = await newIssue.save();
@@ -126,7 +126,7 @@ const getAllIssues = async (req, res) => {
 // Get issues by user (citizen's own issues)
 const getUserIssues = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.userId;
     const {
       status,
       page = 1,
@@ -199,7 +199,7 @@ const getIssueById = async (req, res) => {
     }
 
     // Check if user can view this issue
-    if (req.user.role === 'citizen' && issue.reportedBy._id.toString() !== req.user.id) {
+    if (req.user.role === 'citizen' && issue.reportedBy._id.toString() !== req.user.userId) {
       return res.status(403).json({
         success: false,
         message: 'Access denied. You can only view your own issues'
@@ -360,6 +360,63 @@ const getIssueStatistics = async (req, res) => {
   }
 };
 
+// Assign issue to department
+const assignIssueToDepartment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { department } = req.body;
+
+    // Validate department
+    const validDepartments = ['public-works', 'transportation', 'sanitation', 'water-supply', 'electricity', 'housing', 'health', 'education', 'parks', 'security'];
+    if (!department || !validDepartments.includes(department)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid department. Must be one of: ' + validDepartments.join(', ')
+      });
+    }
+
+    // Validate issue ID
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid issue ID format'
+      });
+    }
+
+    // Find and update the issue
+    const issue = await Issue.findById(id).populate('reportedBy', 'fullName email');
+    
+    if (!issue) {
+      return res.status(404).json({
+        success: false,
+        message: 'Issue not found'
+      });
+    }
+
+    // Update issue with department assignment and change status to in-progress
+    issue.department = department;
+    issue.status = 'in-progress';
+    issue.assignedTo = req.user.userId; // Admin who assigned it
+    
+    const updatedIssue = await issue.save();
+    await updatedIssue.populate('assignedTo', 'fullName email');
+
+    res.json({
+      success: true,
+      message: 'Issue assigned to department successfully',
+      issue: updatedIssue
+    });
+
+  } catch (error) {
+    console.error('Error assigning issue:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to assign issue to department',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   createIssue,
   getAllIssues,
@@ -367,5 +424,6 @@ module.exports = {
   getIssueById,
   updateIssueStatus,
   deleteIssue,
-  getIssueStatistics
+  getIssueStatistics,
+  assignIssueToDepartment
 };

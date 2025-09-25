@@ -3,7 +3,7 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api
 
 // Get authentication token from localStorage
 const getAuthToken = () => {
-  return localStorage.getItem('token');
+  return localStorage.getItem('auth_token'); // Changed from 'token' to 'auth_token'
 };
 
 // Create headers with authentication
@@ -20,21 +20,34 @@ export const issueAPI = {
   // Create a new issue
   createIssue: async (issueData) => {
     try {
+      const token = getAuthToken();
+      console.log('Auth token available:', !!token); // Debug log
+      console.log('API endpoint:', `${API_BASE_URL}/issues`); // Debug log
+      console.log('Issue data being sent:', issueData); // Debug log
+      
       const response = await fetch(`${API_BASE_URL}/issues`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(issueData)
       });
 
+      console.log('Response status:', response.status); // Debug log
+      console.log('Response ok:', response.ok); // Debug log
+
       const data = await response.json();
+      console.log('Response data:', data); // Debug log
 
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to create issue');
+        console.error('API Error:', response.status, data); // Debug log
+        throw new Error(data.message || `HTTP error! status: ${response.status}`);
       }
 
       return data;
     } catch (error) {
       console.error('Error creating issue:', error);
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Cannot connect to server. Please check if the backend server is running.');
+      }
       throw error;
     }
   },
@@ -168,6 +181,28 @@ export const issueAPI = {
       return data;
     } catch (error) {
       console.error('Error fetching statistics:', error);
+      throw error;
+    }
+  },
+
+  // Assign issue to department (admin only)
+  assignIssueToDepartment: async (issueId, department) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/issues/${issueId}/assign`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ department })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to assign issue');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error assigning issue:', error);
       throw error;
     }
   }
