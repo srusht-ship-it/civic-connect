@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile OTP Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            min-height: 20px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 Mobile OTP Test</h1>
+        <p>Test the mobile OTP system with the demo SMS service</p>
+        
+        <div class="form-group">
+            <label for="mobileNumber">Mobile Number:</label>
+            <input type="text" id="mobileNumber" placeholder="Enter 10-digit mobile number (e.g., 9876543210)" value="9876543210">
+        </div>
+        
+        <div class="form-group">
+            <button onclick="sendOTP()">Send Login OTP</button>
+            <button onclick="sendRegistrationOTP()">Send Registration OTP</button>
+        </div>
+        
+        <div class="form-group">
+            <label for="otpCode">OTP Code (check backend console):</label>
+            <input type="text" id="otpCode" placeholder="Enter 6-digit OTP">
+        </div>
+        
+        <div class="form-group">
+            <button onclick="verifyLoginOTP()">Verify Login OTP</button>
+            <button onclick="verifyRegistrationOTP()">Verify Registration OTP</button>
+        </div>
+        
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+        
+        function showResult(message, type = 'info') {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = `result ${type}`;
+            resultDiv.innerHTML = message;
+        }
+        
+        async function sendOTP() {
+            const mobileNumber = document.getElementById('mobileNumber').value;
+            if (!mobileNumber) {
+                showResult('Please enter a mobile number', 'error');
+                return;
+            }
+            
+            try {
+                showResult('Sending OTP...', 'info');
+                const response = await fetch(`${API_BASE}/mobile-otp/send-login-otp`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ mobileNumber })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showResult(`✅ ${data.message}<br><br>📱 <strong>Check the backend console for your OTP!</strong><br>The OTP will be displayed in the terminal where you started the server.`, 'success');
+                } else {
+                    showResult(`❌ ${data.message}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function sendRegistrationOTP() {
+            const mobileNumber = document.getElementById('mobileNumber').value;
+            if (!mobileNumber) {
+                showResult('Please enter a mobile number', 'error');
+                return;
+            }
+            
+            try {
+                showResult('Sending Registration OTP...', 'info');
+                const response = await fetch(`${API_BASE}/mobile-otp/send-registration-otp`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ mobileNumber })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showResult(`✅ ${data.message}<br><br>📱 <strong>Check the backend console for your OTP!</strong>`, 'success');
+                } else {
+                    showResult(`❌ ${data.message}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function verifyLoginOTP() {
+            const mobileNumber = document.getElementById('mobileNumber').value;
+            const otp = document.getElementById('otpCode').value;
+            
+            if (!mobileNumber || !otp) {
+                showResult('Please enter both mobile number and OTP', 'error');
+                return;
+            }
+            
+            try {
+                showResult('Verifying OTP...', 'info');
+                const response = await fetch(`${API_BASE}/mobile-otp/verify-login-otp`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ mobileNumber, otp })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showResult(`✅ ${data.message}<br><br>🔐 Login successful!<br>JWT Token: ${data.data?.token?.substring(0, 50)}...`, 'success');
+                } else {
+                    showResult(`❌ ${data.message}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function verifyRegistrationOTP() {
+            const mobileNumber = document.getElementById('mobileNumber').value;
+            const otp = document.getElementById('otpCode').value;
+            
+            if (!mobileNumber || !otp) {
+                showResult('Please enter both mobile number and OTP', 'error');
+                return;
+            }
+            
+            try {
+                showResult('Verifying Registration OTP...', 'info');
+                const response = await fetch(`${API_BASE}/mobile-otp/verify-registration-otp`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ mobileNumber, otp })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showResult(`✅ ${data.message}`, 'success');
+                } else {
+                    showResult(`❌ ${data.message}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Show initial instructions
+        showResult('📱 Ready to test Mobile OTP!<br><br><strong>Test Users Available:</strong><br>• 9876543210 (Test User)<br>• 9123456789 (Another User)<br><br>Click "Send Login OTP" and check your backend console for the OTP code.');
+    </script>
+</body>
+</html>

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile OTP API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #4a5568;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #4299e1;
+        }
+        
+        .input-group {
+            margin: 15px 0;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2d3748;
+        }
+        
+        input, button {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        
+        button {
+            background: #4299e1;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background: #3182ce;
+        }
+        
+        .result {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 6px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            display: none;
+        }
+        
+        .success {
+            background: #c6f6d5;
+            border: 1px solid #9ae6b4;
+            color: #22543d;
+        }
+        
+        .error {
+            background: #fed7d7;
+            border: 1px solid #fc8181;
+            color: #742a2a;
+        }
+        
+        .info {
+            background: #bee3f8;
+            border: 1px solid #7dd3fc;
+            color: #2a4365;
+        }
+
+        .quick-test {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .quick-test button {
+            flex: 1;
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        .server-status {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .status-checking { background: #fef5e7; color: #744210; }
+        .status-online { background: #c6f6d5; color: #22543d; }
+        .status-offline { background: #fed7d7; color: #742a2a; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏛️ Mobile OTP API Test</h1>
+        
+        <div id="serverStatus" class="server-status status-checking">
+            ⏳ Checking server status...
+        </div>
+
+        <div class="test-section">
+            <h2>📱 Send OTP Test</h2>
+            <p>Test the mobile OTP sending functionality. The demo uses a console output SMS service.</p>
+            
+            <div class="input-group">
+                <label for="mobileNumber">Mobile Number (10 digits, starting with 6-9):</label>
+                <input type="text" id="mobileNumber" placeholder="9876543210" maxlength="10">
+            </div>
+
+            <div class="quick-test">
+                <button onclick="testMobileNumber('9876543210')">Test: 9876543210</button>
+                <button onclick="testMobileNumber('9123456789')">Test: 9123456789</button>
+                <button onclick="testMobileNumber('8888888888')">Test: 8888888888</button>
+                <button onclick="testMobileNumber('5876543210')">Test Invalid: 5xxx</button>
+            </div>
+
+            <button onclick="sendOTP()">📤 Send OTP</button>
+            
+            <div id="otpResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔐 Verify OTP Test</h2>
+            <p>Test OTP verification (use the OTP displayed in the server console).</p>
+            
+            <div class="input-group">
+                <label for="verifyMobile">Mobile Number:</label>
+                <input type="text" id="verifyMobile" placeholder="9876543210">
+            </div>
+
+            <div class="input-group">
+                <label for="otpCode">OTP Code:</label>
+                <input type="text" id="otpCode" placeholder="123456" maxlength="6">
+            </div>
+
+            <button onclick="verifyOTP()">🔓 Verify OTP</button>
+            
+            <div id="verifyResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 Test Users in Temp Store</h2>
+            <p>These test users are available for OTP testing:</p>
+            <ul>
+                <li><strong>+919876543210</strong> (Test User) - Email: test@example.com</li>
+                <li><strong>+919123456789</strong> (Another User) - Email: user@test.com</li>
+            </ul>
+            <p><em>Note: Only these registered users can receive OTP. Unregistered numbers will show "No account found" error.</em></p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+
+        // Check server status on page load
+        window.onload = function() {
+            checkServerStatus();
+        };
+
+        async function checkServerStatus() {
+            const statusDiv = document.getElementById('serverStatus');
+            try {
+                const response = await fetch(`${API_BASE}/health`, { method: 'GET' });
+                if (response.ok) {
+                    statusDiv.className = 'server-status status-online';
+                    statusDiv.innerHTML = '✅ Server is online and ready';
+                } else {
+                    throw new Error('Server not responding properly');
+                }
+            } catch (error) {
+                statusDiv.className = 'server-status status-offline';
+                statusDiv.innerHTML = '❌ Server is offline or unreachable';
+            }
+        }
+
+        function testMobileNumber(number) {
+            document.getElementById('mobileNumber').value = number;
+            sendOTP();
+        }
+
+        async function sendOTP() {
+            const mobileNumber = document.getElementById('mobileNumber').value.trim();
+            const resultDiv = document.getElementById('otpResult');
+            
+            if (!mobileNumber) {
+                showResult(resultDiv, 'Please enter a mobile number', 'error');
+                return;
+            }
+
+            showResult(resultDiv, '⏳ Sending OTP...', 'info');
+
+            try {
+                const response = await fetch(`${API_BASE}/mobile-otp/send-otp`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ mobileNumber })
+                });
+
+                const data = await response.json();
+                
+                const message = `Status: ${response.status}
+Response: ${JSON.stringify(data, null, 2)}
+
+${data.success ? '✅ SUCCESS: Check the server console for the demo OTP' : '❌ FAILED: ' + data.message}`;
+                
+                showResult(resultDiv, message, data.success ? 'success' : 'error');
+                
+                // Auto-fill verify form if successful
+                if (data.success) {
+                    document.getElementById('verifyMobile').value = mobileNumber;
+                }
+
+            } catch (error) {
+                showResult(resultDiv, `❌ Request failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function verifyOTP() {
+            const mobileNumber = document.getElementById('verifyMobile').value.trim();
+            const otp = document.getElementById('otpCode').value.trim();
+            const resultDiv = document.getElementById('verifyResult');
+            
+            if (!mobileNumber || !otp) {
+                showResult(resultDiv, 'Please enter both mobile number and OTP', 'error');
+                return;
+            }
+
+            showResult(resultDiv, '⏳ Verifying OTP...', 'info');
+
+            try {
+                const response = await fetch(`${API_BASE}/mobile-otp/verify-otp`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ mobileNumber, otp })
+                });
+
+                const data = await response.json();
+                
+                const message = `Status: ${response.status}
+Response: ${JSON.stringify(data, null, 2)}
+
+${data.success ? '✅ SUCCESS: OTP verified! User logged in.' : '❌ FAILED: ' + data.message}`;
+                
+                showResult(resultDiv, message, data.success ? 'success' : 'error');
+
+            } catch (error) {
+                showResult(resultDiv, `❌ Request failed: ${error.message}`, 'error');
+            }
+        }
+
+        function showResult(element, message, type) {
+            element.textContent = message;
+            element.className = `result ${type}`;
+            element.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

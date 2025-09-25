@@ -1,12 +1,19 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
+import OTPLogin from './components/OTPLogin';
+import MobileOTPLogin from './components/MobileOTPLogin';
 import './Login.css';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login, loading, error, clearError } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showOTPLogin, setShowOTPLogin] = useState(false);
+  const [showMobileOTPLogin, setShowMobileOTPLogin] = useState(false);
 
   const validateForm = () => {
     const newErrors = {};
@@ -28,17 +35,42 @@ const Login = () => {
     return newErrors;
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    
+    // Clear previous errors
+    setErrors({});
+    clearError();
+    
+    // Validate form
     const formErrors = validateForm();
-
-    if (Object.keys(formErrors).length === 0) {
-      // Handle successful login
-      console.log('Login successful:', { email, password });
-      // Navigate to dashboard on successful login
-      navigate('/dashboard');
-    } else {
+    if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
+      return;
+    }
+
+    try {
+      // Call login API
+      const result = await login({ email, password });
+      
+      if (result.success) {
+        // Navigate to dashboard on successful login
+        navigate('/dashboard');
+      } else {
+        // Handle login errors
+        if (result.errors && result.errors.length > 0) {
+          const apiErrors = {};
+          result.errors.forEach(error => {
+            apiErrors[error.field] = error.message;
+          });
+          setErrors(apiErrors);
+        } else {
+          setErrors({ general: result.message });
+        }
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setErrors({ general: 'Login failed. Please try again.' });
     }
   };
 
@@ -48,8 +80,13 @@ const Login = () => {
   };
 
   const handleMobileOTP = () => {
-    // Handle Mobile OTP login
-    console.log('Mobile OTP login clicked');
+    // Show Mobile OTP login component
+    setShowMobileOTPLogin(true);
+  };
+
+  const handleEmailOTP = () => {
+    // Show Email OTP login component  
+    setShowOTPLogin(true);
   };
 
   const handleSignUp = (e) => {
@@ -59,7 +96,13 @@ const Login = () => {
   };
 
   return (
-    <div className="login-container">
+    <>
+      {showMobileOTPLogin ? (
+        <MobileOTPLogin onBackToLogin={() => setShowMobileOTPLogin(false)} />
+      ) : showOTPLogin ? (
+        <OTPLogin onBackToLogin={() => setShowOTPLogin(false)} />
+      ) : (
+        <div className="login-container">
       <div className="login-card">
         {/* Left Panel - Brand Section */}
         <div className="login-left-panel">
@@ -106,6 +149,13 @@ const Login = () => {
           </div>
 
           <form className="login-form" onSubmit={handleLogin}>
+          {/* General error message */}
+          {(errors.general || error) && (
+            <div className="error-message general-error">
+              {errors.general || error}
+            </div>
+          )}
+          
           <div className="form-group">
             <div className={`input-container ${errors.email ? 'error' : ''}`}>
               <svg className="input-icon" viewBox="0 0 20 20" fill="currentColor">
@@ -149,8 +199,18 @@ const Login = () => {
             <a href="#forgot">Forgot password?</a>
           </div>
 
-          <button type="submit" className="login-button">
-            Login
+          <button type="submit" className="login-button" disabled={loading}>
+            {loading ? (
+              <span className="loading-spinner">
+                <svg className="spinner" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" opacity="0.25"/>
+                  <path fill="currentColor" opacity="0.75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                </svg>
+                Signing in...
+              </span>
+            ) : (
+              'Login'
+            )}
           </button>
         </form>
 
@@ -175,6 +235,14 @@ const Login = () => {
             </svg>
             Login with Mobile OTP
           </button>
+
+          <button className="email-otp-button" onClick={handleEmailOTP}>
+            <svg className="email-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+              <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+            </svg>
+            Login with Email OTP
+          </button>
         </div>
 
           <div className="signup-section">
@@ -186,6 +254,8 @@ const Login = () => {
         </div>
       </div>
     </div>
+      )}
+    </>
   );
 };
 

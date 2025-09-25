@@ -427,3 +427,86 @@
     font-size: 0.95rem;
   }
 }
+
+/* Loading Spinner and Error States */
+.general-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.create-account-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.password-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-container input {
+  width: 100%;
+  padding-right: 45px;
+}
+
+.show-password-btn {
+  position: absolute;
+  right: 15px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #6b7280;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  z-index: 1;
+}
+
+.show-password-btn:hover {
+  color: #374151;
+}
+
+.show-password-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.form-group input:disabled {
+  background-color: #f9fafb;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.terms-checkbox input:disabled {
+  cursor: not-allowed;
+}

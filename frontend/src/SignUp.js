@@ -1,18 +1,22 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
 import './SignUp.css';
 
 const SignUp = () => {
   const navigate = useNavigate();
+  const { register, loading, error, clearError } = useAuth();
   const [formData, setFormData] = useState({
-    name: '',
+    fullName: '',
     email: '',
-    mobile: '',
+    phoneNumber: '',
     password: '',
     confirmPassword: ''
   });
   const [errors, setErrors] = useState({});
   const [agreeToTerms, setAgreeToTerms] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -33,11 +37,13 @@ const SignUp = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    // Name validation
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
-    } else if (formData.name.trim().length < 2) {
-      newErrors.name = 'Name must be at least 2 characters';
+    // Full Name validation
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = 'Full name is required';
+    } else if (formData.fullName.trim().length < 2) {
+      newErrors.fullName = 'Full name must be at least 2 characters';
+    } else if (!/^[a-zA-Z\s]+$/.test(formData.fullName.trim())) {
+      newErrors.fullName = 'Full name can only contain letters and spaces';
     }
 
     // Email validation
@@ -47,11 +53,9 @@ const SignUp = () => {
       newErrors.email = 'Email is invalid';
     }
 
-    // Mobile validation
-    if (!formData.mobile) {
-      newErrors.mobile = 'Mobile number is required';
-    } else if (!/^\d{10}$/.test(formData.mobile.replace(/[^\d]/g, ''))) {
-      newErrors.mobile = 'Mobile number must be 10 digits';
+    // Phone Number validation (optional)
+    if (formData.phoneNumber && !/^\+?[\d\s-()]+$/.test(formData.phoneNumber)) {
+      newErrors.phoneNumber = 'Please enter a valid phone number';
     }
 
     // Password validation
@@ -59,6 +63,8 @@ const SignUp = () => {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
+    } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
+      newErrors.password = 'Password must contain at least one lowercase letter, one uppercase letter, and one number';
     }
 
     // Confirm password validation
@@ -76,17 +82,42 @@ const SignUp = () => {
     return newErrors;
   };
 
-  const handleSignUp = (e) => {
+  const handleSignUp = async (e) => {
     e.preventDefault();
+    
+    // Clear previous errors
+    setErrors({});
+    clearError();
+    
+    // Validate form
     const formErrors = validateForm();
-
-    if (Object.keys(formErrors).length === 0) {
-      // Handle successful signup
-      console.log('Signup successful:', formData);
-      // Navigate to login page after successful signup
-      navigate('/login');
-    } else {
+    if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
+      return;
+    }
+
+    try {
+      // Call register API
+      const result = await register(formData);
+      
+      if (result.success) {
+        // Navigate to dashboard on successful registration
+        navigate('/dashboard');
+      } else {
+        // Handle registration errors
+        if (result.errors && result.errors.length > 0) {
+          const apiErrors = {};
+          result.errors.forEach(error => {
+            apiErrors[error.field] = error.message;
+          });
+          setErrors(apiErrors);
+        } else {
+          setErrors({ general: result.message });
+        }
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      setErrors({ general: 'Registration failed. Please try again.' });
     }
   };
 
@@ -161,17 +192,25 @@ const SignUp = () => {
           </div>
 
           <form className="signup-form" onSubmit={handleSignUp}>
+          {/* General error message */}
+          {(errors.general || error) && (
+            <div className="error-message general-error">
+              {errors.general || error}
+            </div>
+          )}
+
           <div className="form-group">
             <input
               type="text"
-              name="name"
-              placeholder="Name"
-              value={formData.name}
+              name="fullName"
+              placeholder="Full Name"
+              value={formData.fullName}
               onChange={handleInputChange}
-              className={errors.name ? 'error' : ''}
+              className={errors.fullName ? 'error' : ''}
               required
+              disabled={loading}
             />
-            {errors.name && <div className="error-message">{errors.name}</div>}
+            {errors.fullName && <div className="error-message">{errors.fullName}</div>}
           </div>
 
           <div className="form-group">
@@ -183,6 +222,7 @@ const SignUp = () => {
               onChange={handleInputChange}
               className={errors.email ? 'error' : ''}
               required
+              disabled={loading}
             />
             {errors.email && <div className="error-message">{errors.email}</div>}
           </div>
@@ -190,39 +230,61 @@ const SignUp = () => {
           <div className="form-group">
             <input
               type="tel"
-              name="mobile"
-              placeholder="Mobile"
-              value={formData.mobile}
+              name="phoneNumber"
+              placeholder="Phone Number (Optional)"
+              value={formData.phoneNumber}
               onChange={handleInputChange}
-              className={errors.mobile ? 'error' : ''}
-              required
+              className={errors.phoneNumber ? 'error' : ''}
+              disabled={loading}
             />
-            {errors.mobile && <div className="error-message">{errors.mobile}</div>}
+            {errors.phoneNumber && <div className="error-message">{errors.phoneNumber}</div>}
           </div>
 
           <div className="form-group">
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              value={formData.password}
-              onChange={handleInputChange}
-              className={errors.password ? 'error' : ''}
-              required
-            />
+            <div className="password-input-container">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleInputChange}
+                className={errors.password ? 'error' : ''}
+                required
+                disabled={loading}
+              />
+              <button 
+                type="button" 
+                className="show-password-btn"
+                onClick={() => setShowPassword(!showPassword)}
+                disabled={loading}
+              >
+                {showPassword ? '👁️‍🗨️' : '👁️'}
+              </button>
+            </div>
             {errors.password && <div className="error-message">{errors.password}</div>}
           </div>
 
           <div className="form-group">
-            <input
-              type="password"
-              name="confirmPassword"
-              placeholder="Confirm Password"
-              value={formData.confirmPassword}
-              onChange={handleInputChange}
-              className={errors.confirmPassword ? 'error' : ''}
-              required
-            />
+            <div className="password-input-container">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                name="confirmPassword"
+                placeholder="Confirm Password"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                className={errors.confirmPassword ? 'error' : ''}
+                required
+                disabled={loading}
+              />
+              <button 
+                type="button" 
+                className="show-password-btn"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                disabled={loading}
+              >
+                {showConfirmPassword ? '👁️‍🗨️' : '👁️'}
+              </button>
+            </div>
             {errors.confirmPassword && <div className="error-message">{errors.confirmPassword}</div>}
           </div>
 
@@ -232,6 +294,7 @@ const SignUp = () => {
                 type="checkbox"
                 checked={agreeToTerms}
                 onChange={(e) => setAgreeToTerms(e.target.checked)}
+                disabled={loading}
               />
               <span className="checkmark"></span>
               <span className="terms-text">
@@ -241,8 +304,18 @@ const SignUp = () => {
             {errors.terms && <div className="error-message">{errors.terms}</div>}
           </div>
 
-          <button type="submit" className="create-account-button">
-            Create Account
+          <button type="submit" className="create-account-button" disabled={loading}>
+            {loading ? (
+              <span className="loading-spinner">
+                <svg className="spinner" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" opacity="0.25"/>
+                  <path fill="currentColor" opacity="0.75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                </svg>
+                Creating Account...
+              </span>
+            ) : (
+              'Create Account'
+            )}
           </button>
         </form>
 
