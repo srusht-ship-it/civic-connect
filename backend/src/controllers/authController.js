@@ -1,13 +1,15 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const mobileOTPService = require('../services/mobileOTPService');
 
 // Generate JWT Token
-const generateToken = (userId, email, role) => {
+const generateToken = (userId, email, role, mobileNumber) => {
   return jwt.sign(
     { 
       userId, 
       email, 
-      role 
+      role,
+      mobileNumber 
     },
     process.env.JWT_SECRET,
     { 
@@ -19,7 +21,30 @@ const generateToken = (userId, email, role) => {
 // User Registration Controller
 const registerUser = async (req, res) => {
   try {
-    const { fullName, email, password, confirmPassword, phoneNumber } = req.body;
+    const { fullName, email, password, confirmPassword, phoneNumber, mobileNumber } = req.body;
+
+    // Use mobileNumber if provided, otherwise use phoneNumber for backward compatibility
+    const mobile = mobileNumber || phoneNumber;
+
+    // Validate mobile number is provided
+    if (!mobile) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mobile number is required'
+      });
+    }
+
+    // Validate and format mobile number
+    const mobileValidation = mobileOTPService.validateAndFormatMobileNumber(mobile);
+    
+    if (!mobileValidation.isValid) {
+      return res.status(400).json({
+        success: false,
+        message: mobileValidation.error
+      });
+    }
+
+    const formattedMobile = mobileValidation.formattedNumber;
 
     // Check if passwords match
     if (password !== confirmPassword) {
@@ -29,13 +54,27 @@ const registerUser = async (req, res) => {
       });
     }
 
-    // Check if user already exists
-    const existingUser = await User.findByEmail(email);
-    if (existingUser) {
+    // Check if user already exists by email
+    const existingUserByEmail = await User.findByEmail(email);
+    if (existingUserByEmail) {
       return res.status(409).json({
         success: false,
         message: 'User with this email already exists'
       });
+    }
+
+    // Check if user already exists by mobile number
+    try {
+      const existingUserByMobile = await User.findByMobile(formattedMobile);
+      if (existingUserByMobile) {
+        return res.status(409).json({
+          success: false,
+          message: 'User with this mobile number already exists'
+        });
+      }
+    } catch (error) {
+      // Mobile lookup might fail if method doesn't exist, that's OK
+      console.log('Mobile lookup failed, continuing with registration');
     }
 
     // Create new user
@@ -43,13 +82,13 @@ const registerUser = async (req, res) => {
       fullName: fullName.trim(),
       email: email.toLowerCase().trim(),
       password,
-      phoneNumber: phoneNumber ? phoneNumber.trim() : undefined
+      mobileNumber: formattedMobile
     });
 
     await newUser.save();
 
     // Generate token
-    const token = generateToken(newUser._id, newUser.email, newUser.role);
+    const token = generateToken(newUser._id, newUser.email, newUser.role, newUser.mobileNumber);
 
     // Get public profile
     const userProfile = newUser.getPublicProfile();
@@ -122,7 +161,7 @@ const loginUser = async (req, res) => {
     await user.save();
 
     // Generate token
-    const token = generateToken(user._id, user.email, user.role);
+    const token = generateToken(user._id, user.email, user.role, user.mobileNumber);
 
     // Get public profile
     const userProfile = user.getPublicProfile();

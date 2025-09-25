@@ -10,7 +10,7 @@ export const authService = {
         email: userData.email,
         password: userData.password,
         confirmPassword: userData.confirmPassword,
-        phoneNumber: userData.phoneNumber
+        mobileNumber: userData.phoneNumber // Send as mobileNumber to match backend
       });
 
       if (response.data.success) {

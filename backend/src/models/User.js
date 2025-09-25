@@ -25,7 +25,7 @@ const userSchema = new mongoose.Schema({
     unique: true,
     trim: true,
     match: [
-      /^(\+91|91)?[6-9]\d{9}$/,
+      /^(\+91[6-9]\d{9}|91[6-9]\d{9}|[6-9]\d{9})$/,
       'Please enter a valid Indian mobile number'
     ]
   },
@@ -116,7 +116,20 @@ userSchema.methods.getPublicProfile = function() {
 
 //Static method to find user by mobile number
 userSchema.statics.findByMobile = function(mobileNumber) {
-  return this.findOne({ mobileNumber: mobileNumber });
+  // Clean the mobile number to get just digits
+  const cleanMobile = mobileNumber.replace(/\+91|91|\+|\s|-/g, '');
+  
+  // Create search patterns for different formats
+  const searchPatterns = [
+    mobileNumber,                    // Exact match (e.g., +918999897368)
+    cleanMobile,                     // Just digits (e.g., 8999897368)
+    `+91${cleanMobile}`,            // International format
+    `91${cleanMobile}`              // Country code format
+  ];
+  
+  return this.findOne({ 
+    mobileNumber: { $in: searchPatterns }
+  });
 };
 
 // Static method to find user by email
