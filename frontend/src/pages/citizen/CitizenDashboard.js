@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
 import IssueCard from '../../components/IssueCard';
+import IssueProgressCard from '../../components/IssueProgressCard';
 import StatusSidebar from '../../components/StatusSidebar';
 import MapComponent from '../../components/MapComponent';
 import LanguageSelector from '../../components/LanguageSelector';
@@ -19,6 +20,7 @@ const NewDashboard = () => {
     inProgress: 0,
     resolved: 0
   });
+  const [userIssues, setUserIssues] = useState([]); // Store user's own issues for progress tracking
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -32,6 +34,13 @@ const NewDashboard = () => {
   useEffect(() => {
     if (isAuthenticated && user) {
       loadDashboardData();
+      
+      // Set up auto-refresh every 30 seconds to check for updates
+      const refreshInterval = setInterval(() => {
+        loadDashboardData();
+      }, 30000);
+      
+      return () => clearInterval(refreshInterval);
     }
   }, [isAuthenticated, user]);
 
@@ -54,8 +63,10 @@ const NewDashboard = () => {
       // Set user-specific reports data
       if (userReportsResponse.success) {
         setUserReports(userReportsResponse.data);
+        setUserIssues(userReportsResponse.issues || []); // Store user issues for progress tracking
       } else {
-        setUserReports(userReportsResponse);
+        setUserReports(userReportsResponse.data || userReportsResponse);
+        setUserIssues([]);
       }
     } catch (err) {
       console.error('Error loading dashboard data:', err);
@@ -114,6 +125,11 @@ const NewDashboard = () => {
         issue.id === updatedIssue.id ? updatedIssue : issue
       )
     );
+  };
+
+  const handleRefresh = async () => {
+    setLoading(true);
+    await loadDashboardData();
   };
 
   if (loading) {
@@ -180,6 +196,15 @@ const NewDashboard = () => {
           <button className="header-btn">
             <span className="icon">🗺️</span>
             Map View
+          </button>
+          <button 
+            className="header-btn refresh-btn" 
+            onClick={handleRefresh}
+            disabled={loading}
+            title="Refresh to check for updates"
+          >
+            <span className={`icon ${loading ? 'spinning' : ''}`}>🔄</span>
+            Refresh
           </button>
           <div className="user-menu">
             <div className="user-info">
@@ -256,6 +281,35 @@ const NewDashboard = () => {
             </div>
           </div>
 
+          {/* My Issues Progress Section */}
+          {userIssues.length > 0 && (
+            <div className="my-issues-section">
+              <div className="section-header">
+                <h2>My Issues Progress</h2>
+                <div className="header-actions">
+                  <button className="view-all-btn">View All My Issues</button>
+                </div>
+              </div>
+              
+              <div className="my-issues-list">
+                {userIssues.slice(0, 3).map(issue => (
+                  <IssueProgressCard 
+                    key={issue._id || issue.id} 
+                    issue={issue}
+                    onViewDetails={(issue) => console.log('View details for:', issue)}
+                  />
+                ))}
+                
+                {userIssues.length > 3 && (
+                  <div className="more-issues-notice">
+                    <p>+ {userIssues.length - 3} more issues</p>
+                    <button className="show-all-btn">Show All My Issues</button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Trending Issues */}
           <div className="trending-section">
             <div className="section-header">
@@ -284,7 +338,7 @@ const NewDashboard = () => {
 
         {/* Right Sidebar */}
         <div className="right-sidebar">
-          <StatusSidebar userReports={userReports} />
+          <StatusSidebar userReports={userReports} userIssues={userIssues} />
           <MapComponent />
           
           {/* Recent Activity */}

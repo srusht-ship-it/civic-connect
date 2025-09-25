@@ -17,16 +17,45 @@ class CivicIssuesService {
   // Fetch user's reports
   async getUserReports() {
     try {
-      const response = await api.get('/issues/user-reports');
+      const response = await api.get('/issues/my-issues');
+      
+      // Process the response to get status counts
+      if (response.data && response.data.success && response.data.issues) {
+        const issues = response.data.issues;
+        const statusCounts = issues.reduce((counts, issue) => {
+          const status = issue.status?.toLowerCase() || 'pending';
+          counts[status] = (counts[status] || 0) + 1;
+          counts.total = (counts.total || 0) + 1;
+          return counts;
+        }, {});
+        
+        return {
+          success: true,
+          data: {
+            pending: statusCounts.pending || 0,
+            'in-progress': statusCounts['in-progress'] || 0,
+            inProgress: statusCounts['in-progress'] || 0, // alias for compatibility
+            resolved: statusCounts.resolved || 0,
+            rejected: statusCounts.rejected || 0,
+            total: statusCounts.total || 0
+          },
+          issues: issues // Include full issue details for progress tracking
+        };
+      }
+      
       return response.data;
     } catch (error) {
       console.error('Error fetching user reports:', error);
       // Return sample data for now
       return {
-        pending: 4,
-        inProgress: 3,
-        resolved: 6,
-        total: 13
+        success: false,
+        data: {
+          pending: 4,
+          inProgress: 3,
+          resolved: 6,
+          total: 13
+        },
+        issues: []
       };
     }
   }
